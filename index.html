@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B3A78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sueño">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Diario de sueño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F7; --surface:#FFFFFF; --ink:#1B2240; --muted:#5B6385; --line:#D5DAE8;
+  --night:#2B3A78; --moon:#C98A12; --ok:#2F7D5B; --warn:#B4502F; --field:#F6F8FC; --veil:rgba(15,20,45,.45);
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121733; --surface:#1B2247; --ink:#E9ECF7; --muted:#A3AAC9; --line:#2F3866;
+    --night:#9FB0F5; --moon:#F2C14E; --ok:#6FCF9F; --warn:#F08A6B; --field:#151B3B; --veil:rgba(0,0,0,.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121733; --surface:#1B2247; --ink:#E9ECF7; --muted:#A3AAC9; --line:#2F3866;
+  --night:#9FB0F5; --moon:#F2C14E; --ok:#6FCF9F; --warn:#F08A6B; --field:#151B3B; --veil:rgba(0,0,0,.55);
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;-webkit-text-size-adjust:100%}
+main{max-width:560px;margin:0 auto;padding:12px 16px 40px}
+.top{display:flex;align-items:center;gap:12px;margin:4px 0 4px}
+.ham{width:46px;height:46px;flex:none;border:1px solid var(--line);background:var(--surface);border-radius:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer;padding:0}
+.ham span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:700;font-size:1.7rem;line-height:1.1;margin:0}
+h2{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.25rem;margin:0 0 10px}
+.sub{color:var(--muted);margin:6px 0 16px;font-size:.95rem}
+nav{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:18px}
+nav button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:10px 6px;border-radius:999px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--night);color:var(--surface)}
+section[hidden]{display:none}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 12px}
+.grid>div{display:flex;flex-direction:column;min-width:0}
+.grid>div>label{flex:1}
+.full{grid-column:1/-1}
+.sep{grid-column:1/-1;border-top:1px solid var(--line);margin:4px 0 0;padding-top:8px;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+label b{color:var(--ink);font-weight:700;display:block;font-size:.97rem}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:48px;-webkit-appearance:none;appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 21px,calc(100% - 13px) 21px;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+input[type="time"],input[type="date"]{min-width:0}
+textarea{min-height:64px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid var(--moon);outline-offset:1px}
+input:disabled,select:disabled{opacity:.45}
+.qual{display:flex;gap:6px}
+.qual button{flex:1;min-height:48px;border:1px solid var(--line);background:var(--field);color:var(--ink);font:inherit;font-weight:700;border-radius:12px;cursor:pointer}
+.qual button[aria-pressed="true"]{background:var(--moon);color:#1B2240;border-color:var(--moon)}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:700;font-size:1.05rem;background:var(--night);color:var(--surface);cursor:pointer;margin-top:14px;text-align:center}
+.btn.ghost{background:transparent;color:var(--night);border:1px solid var(--line)}
+.err{color:var(--warn);font-weight:700;margin:10px 0 0;min-height:1em}
+.preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.kpi{background:var(--field);border-radius:12px;padding:10px;min-width:0}
+.kpi span{display:block;font-size:.76rem;color:var(--muted)}
+.kpi strong{font-size:1.12rem}
+.big{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.big strong{font-family:"Fraunces",Georgia,serif;font-size:3rem;line-height:1;color:var(--night)}
+.big span{color:var(--muted)}
+.bar{height:10px;border-radius:99px;background:var(--line);position:relative;overflow:hidden;margin:8px 0 2px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--night);border-radius:99px}
+.bar::after{content:"";position:absolute;left:85%;top:-2px;bottom:-2px;width:2px;background:var(--moon)}
+.small{font-size:.85rem;color:var(--muted)}
+.night{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.night:last-child{border-bottom:0}
+.night .d{font-weight:700}
+.night .m{font-size:.85rem;color:var(--muted)}
+.night .e{font-family:"Fraunces",Georgia,serif;font-size:1.4rem;color:var(--night);text-align:right}
+.acts{display:flex;gap:6px;margin-top:6px}
+.acts button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:.85rem;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:20px 6px}
+.aviso{background:var(--field);border:1px solid var(--moon);border-radius:12px;padding:10px 12px;font-size:.9rem;margin:0 0 14px}
+.aviso[hidden]{display:none}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+dl{margin:0}dt{font-weight:700;margin-top:10px}dd{margin:2px 0 0;color:var(--muted)}
+/* menú lateral */
+.velo{position:fixed;inset:0;background:var(--veil);z-index:30}
+.velo[hidden]{display:none}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,330px);background:var(--surface);border-right:1px solid var(--line);z-index:40;transform:translateX(-105%);transition:transform .22s ease;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer .cab{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.drawer .cerrar{border:0;background:transparent;color:var(--muted);font-size:1.6rem;line-height:1;cursor:pointer;padding:6px}
+.mi{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--field);color:var(--ink);font:inherit;font-weight:700;border-radius:12px;padding:14px;margin:8px 0;cursor:pointer}
+.mi small{display:block;font-weight:400;color:var(--muted);font-size:.82rem}
+.drawer hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+@media (prefers-reduced-motion: reduce){.toast,.drawer{transition:none}}
+/* gráficos */
+.rango{display:flex;gap:6px;margin-bottom:10px}
+.rango button{flex:1;min-height:42px;border:1px solid var(--line);background:var(--field);color:var(--ink);font:inherit;font-weight:700;border-radius:12px;cursor:pointer;font-size:.9rem}
+.rango button[aria-pressed="true"]{background:var(--night);color:var(--surface);border-color:var(--night)}
+.chart{margin:4px 0 20px}
+.chart h3{font-size:1rem;margin:0 0 4px}
+.leg{display:flex;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-bottom:4px;flex-wrap:wrap}
+.leg b{color:var(--ink)}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.leg i.dash{background:none!important;border-top:2px dashed var(--muted);height:0}
+.leg i.dot{background:none!important;border-top:2px dotted var(--muted);height:0}
+.leg i.band{height:10px;width:10px;border-radius:2px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="velo" id="velo" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Respaldo de datos">
+  <div class="cab"><h2 style="margin:0">Respaldo</h2><button class="cerrar" id="cerrarMenu" aria-label="Cerrar menú">×</button></div>
+  <p class="small" id="ultResp"></p>
+  <button class="mi" id="xlsxOut">Descargar respaldo Excel<small>Planilla con todas tus noches y los cálculos</small></button>
+  <label class="mi" for="xlsxIn">Cargar desde Excel<small>Recupera noches desde un respaldo descargado</small></label>
+  <input type="file" id="xlsxIn" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+  <hr>
+  <button class="mi" id="instalarBtn" hidden>Instalar app en este teléfono</button>
+  <p class="small" id="instalarTxt"></p>
+  <button class="mi" id="migrarBtn">Traer datos de la versión anterior<small>Solo se usa una vez, para pasar lo registrado en Claude</small></button>
+  <div id="migrar" hidden>
+    <p class="small">En la versión anterior: Historial → Descargar respaldo → Copiar. Luego pega el texto aquí.</p>
+    <textarea id="migrarTxt" rows="5" style="font-size:.8rem"></textarea>
+    <button class="btn" id="migrarOk">Importar</button>
+  </div>
+  <hr>
+  <p class="small">Tus datos se guardan solo en este teléfono. Si borras los datos del navegador o desinstalas la app, se pierden: descarga un respaldo cada semana.</p>
+</aside>
+
+<main>
+  <header class="top">
+    <button class="ham" id="menuBtn" aria-label="Abrir menú de respaldo" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
+    <h1>Diario de sueño</h1>
+  </header>
+  <p class="sub">Un registro por noche, idealmente al levantarte.</p>
+  <p class="aviso" id="avisoResp" hidden></p>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="reg">Registrar</button>
+    <button role="tab" aria-selected="false" data-tab="res">Resumen</button>
+    <button role="tab" aria-selected="false" data-tab="his">Historial</button>
+  </nav>
+
+  <!-- REGISTRAR -->
+  <section id="reg">
+    <div class="panel">
+      <div class="grid">
+        <div class="full"><label for="fecha"><b>Noche del</b>Fecha en que te acostaste</label><input type="date" id="fecha"></div>
+
+        <div class="sep">La noche</div>
+        <div><label for="acostar"><b>Me acosté</b>Entré a la cama</label><input type="time" id="acostar"></div>
+        <div><label for="luz"><b>Intenté dormir</b>Apagué la luz</label><input type="time" id="luz"></div>
+        <div class="full"><label for="lat"><b>Demoré en dormirme</b>Minutos, aprox.</label><input type="number" id="lat" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <div><label for="ndesp"><b>Despertares</b>Cuántas veces</label><input type="number" id="ndesp" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+        <div><label for="waso"><b>Tiempo despierto</b>Minutos en total</label><input type="number" id="waso" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+
+        <div class="sep">La mañana</div>
+        <div><label for="desp"><b>Último despertar</b>Desperté definitivo</label><input type="time" id="desp"></div>
+        <div><label for="lev"><b>Me levanté</b>Salí de la cama</label><input type="time" id="lev"></div>
+        <div><label for="antes"><b>¿Desperté antes?</b>De lo que quería</label><select id="antes"><option value="">No</option><option value="si">Sí</option></select></div>
+        <div><label for="antesmin"><b>¿Cuánto antes?</b>Minutos, aprox.</label><input type="number" id="antesmin" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <div class="full"><label><b>Calidad del sueño</b>1 = muy mala, 5 = muy buena</label>
+          <div class="qual" id="qual"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div>
+        </div>
+
+        <div class="sep">El día anterior</div>
+        <div><label for="siesta"><b>Siesta</b>Minutos</label><input type="number" id="siesta" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <div><label for="trasnoche"><b>Trasnoche</b>Noche fuera de rutina</label><select id="trasnoche"><option value="">No</option><option value="si">Sí</option></select></div>
+        <div><label for="cafe"><b>Café</b>¿Tomaste?</label><select id="cafe"><option value="">No</option><option value="si">Sí</option></select></div>
+        <div><label for="cafehora"><b>Último café</b>Hora</label><input type="time" id="cafehora"></div>
+        <div class="full"><label for="alcohol"><b>Alcohol</b>Cantidad</label><select id="alcohol"><option value="">No tomé</option><option value="poca">Poca</option><option value="media">Media</option><option value="alta">Alta</option></select></div>
+        <div><label for="pastilla"><b>Pastilla para dormir</b>¿Tomaste algo?</label><select id="pastilla"><option value="">No</option><option value="si">Sí</option></select></div>
+        <div><label for="pastillatxt"><b>¿Qué tomaste?</b>Nombre, dosis, hora</label><input type="text" id="pastillatxt" placeholder="Ej.: ½ comp., 23:00"></div>
+        <div class="full"><label for="notas"><b>Notas</b>Opcional: estrés, viaje, ejercicio…</label><textarea id="notas"></textarea></div>
+      </div>
+      <div class="preview" id="preview"></div>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" id="guardar">Guardar noche</button>
+      <button class="btn ghost" id="limpiar" hidden>Cancelar edición</button>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section id="res" hidden>
+    <div class="panel" id="resumen"></div>
+    <div class="panel" id="graficos" hidden>
+      <h2>Evolución</h2>
+      <div class="rango" id="rango"><button type="button" data-r="7">7 días</button><button type="button" data-r="14">14 días</button><button type="button" data-r="30">30 días</button><button type="button" data-r="todo">Todo</button></div>
+      <div class="grid"><div><label for="desde"><b>Desde</b></label><input type="date" id="desde"></div><div><label for="hasta"><b>Hasta</b></label><input type="date" id="hasta"></div></div>
+      <p class="small" id="rangonota"></p>
+      <div id="charts"></div>
+    </div>
+    <div class="panel">
+      <h2>Cómo se calcula</h2>
+      <dl>
+        <dt>Tiempo en cama (TEC)</dt><dd>Desde que te acostaste hasta que te levantaste.</dd>
+        <dt>Tiempo dormido (TTS)</dt><dd>Desde que intentaste dormir hasta el último despertar, menos lo que demoraste en dormirte y el tiempo despierto en la noche.</dd>
+        <dt>Eficiencia sobre tiempo en cama</dt><dd>TTS ÷ TEC. Incluye el tiempo en cama antes de intentar dormir.</dd>
+        <dt>Eficiencia sobre intento de dormir</dt><dd>TTS ÷ (desde que intentaste dormir hasta levantarte).</dd>
+        <dt>Promedios</dt><dd>Eficiencias: total dormido ÷ total en cama del período. Resto: promedio simple de las noches.</dd>
+        <dt>Línea de 85%</dt><dd>Referencia habitual para ajustar la ventana de sueño. El ajuste lo define tu médica.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="his" hidden>
+    <div class="panel">
+      <h2>Noches registradas</h2>
+      <div id="lista"></div>
+    </div>
+  </section>
+  <p class="small" id="estado"></p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const LS = 'diario-sueno-v2', LS_RESP = 'diario-sueno-v2-ultimo-respaldo';
+  let noches = {};
+  let calidad = null, editando = null;
+
+  // ================= utilidades =================
+  // Horas antes de las 12:00 se consideran de la madrugada siguiente a la noche registrada.
+  const aMin = t => { if(!t) return null; const [h,m]=t.split(':').map(Number); let v=h*60+m; if(h<12) v+=1440; return v; };
+  const num = v => (v===''||v==null||isNaN(+v)) ? 0 : Math.max(0,+v);
+  const hm = m => { if(m==null||isNaN(m)) return '–'; const s=m<0?'-':''; m=Math.abs(Math.round(m)); return s+Math.floor(m/60)+' h '+String(m%60).padStart(2,'0'); };
+  const pct = x => (x==null||isNaN(x)) ? '–' : Math.round(x*100)+'%';
+  const dec1 = v => (Math.round(v*10)/10).toString().replace('.',',');
+  const esc = v => String(v??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const pad = n => String(n).padStart(2,'0');
+  const isoLocal = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const fmtFecha = f => { const [y,mo,d]=f.split('-').map(Number); return new Date(y,mo-1,d).toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'}); };
+  const diaN = f => { const [y,m,d]=f.split('-').map(Number); return Math.round(Date.UTC(y,m-1,d)/864e5); };
+  const deDia = n => { const dt=new Date(n*864e5); return dt.getUTCFullYear()+'-'+pad(dt.getUTCMonth()+1)+'-'+pad(dt.getUTCDate()); };
+  const etq = n => { const dt=new Date(n*864e5); return dt.getUTCDate()+'/'+(dt.getUTCMonth()+1); };
+
+  function calcular(r){
+    const a=aMin(r.acostar), l=aMin(r.luz), d=aMin(r.desp), v=aMin(r.lev);
+    if([a,l,d,v].some(x=>x==null)) return {error:'Completa las cuatro horas: me acosté, intenté dormir, último despertar y me levanté.'};
+    if(!(a<=l && l<=d && d<=v)) return {error:'Revisa el orden: me acosté ≤ intenté dormir ≤ último despertar ≤ me levanté.'};
+    const lat=num(r.lat), waso=num(r.waso);
+    const tec=v-a, ventana=v-l, tts=(d-l)-lat-waso;
+    if(tts<=0) return {error:'El tiempo dormido resulta cero o negativo. Revisa latencia y tiempo despierto.'};
+    return { tec, ventana, tts, lat, waso, preCama:l-a, postCama:v-d, efCama:tts/tec, efIntento:tts/ventana };
+  }
+
+  // Convierte registros de la versión anterior (campo café/alcohol combinado).
+  function normalizar(r){
+    r = Object.assign({}, r);
+    const viejo = (r.cafe||'').toString().toLowerCase();
+    if(viejo==='café' || viejo==='cafe' || viejo==='alcohol' || viejo==='ambos'){
+      r.cafe = (viejo==='alcohol') ? '' : 'si';
+      if(viejo==='alcohol' || viejo==='ambos'){
+        if(!r.alcohol) r.notas = ((r.notas||'')+' [Alcohol: cantidad no registrada]').trim();
+      }
+    }
+    ['acostar','luz','desp','lev','cafehora','lat','ndesp','waso','antes','antesmin','siesta','trasnoche','alcohol','pastilla','pastillatxt','notas'].forEach(k=>{ if(r[k]==null) r[k]=''; });
+    if(r.calidad===''||r.calidad==null||isNaN(+r.calidad)) r.calidad=null; else r.calidad=+r.calidad;
+    return r;
+  }
+
+  // ================= almacenamiento (solo en este teléfono) =================
+  let almacenOk = true;
+  function guardarLocal(){ try{ localStorage.setItem(LS, JSON.stringify(noches)); }catch(e){ almacenOk=false; estado('No se pudo guardar en este navegador.'); } }
+  function cargarLocal(){ try{ const s=localStorage.getItem(LS); if(s) noches=JSON.parse(s)||{}; }catch(e){ noches={}; } }
+  function persistir(r){ noches[r.fecha]=r; guardarLocal(); }
+  function borrar(f){ delete noches[f]; guardarLocal(); }
+
+  // ================= formulario =================
+  const campos=['fecha','acostar','luz','lat','ndesp','waso','desp','lev','antes','antesmin','siesta','trasnoche','cafe','cafehora','alcohol','pastilla','pastillatxt','notas'];
+  function sync(){
+    $('antesmin').disabled = $('antes').value!=='si';
+    $('cafehora').disabled = $('cafe').value!=='si';
+    $('pastillatxt').disabled = $('pastilla').value!=='si';
+  }
+  function leer(){ const r={}; campos.forEach(c=>r[c]=$(c).value); r.calidad=calidad; return r; }
+  function escribir(r){ campos.forEach(c=>$(c).value=r[c]??''); setCalidad(r.calidad??null); sync(); }
+  function setCalidad(v){ calidad=v; document.querySelectorAll('#qual button').forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.v===v))); }
+  function ayer(){ const d=new Date(); d.setDate(d.getDate()-1); return isoLocal(d); }
+
+  function nuevo(){
+    editando=null; escribir({fecha:ayer()});
+    const ult = Object.values(noches).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+    if(ult){ ['acostar','luz','desp','lev'].forEach(c=>$(c).value=ult[c]||''); }
+    $('limpiar').hidden=true; $('guardar').textContent='Guardar noche'; preview();
+  }
+  function preview(){
+    const c=calcular(leer()); const p=$('preview');
+    if(c.error){ p.innerHTML=''; return; }
+    p.innerHTML=`<div class="kpi"><span>En cama</span><strong>${hm(c.tec)}</strong></div>
+      <div class="kpi"><span>Dormido</span><strong>${hm(c.tts)}</strong></div>
+      <div class="kpi"><span>Efic. cama · intento</span><strong>${pct(c.efCama)} · ${pct(c.efIntento)}</strong></div>`;
+  }
+  $('qual').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setCalidad(+b.dataset.v); });
+  document.querySelectorAll('#reg input, #reg select, #reg textarea').forEach(el=>['input','change'].forEach(ev=>el.addEventListener(ev,()=>{ $('err').textContent=''; sync(); preview(); })));
+
+  $('guardar').addEventListener('click', ()=>{
+    const r=leer();
+    if(!r.fecha){ $('err').textContent='Indica la fecha.'; return; }
+    const c=calcular(r); if(c.error){ $('err').textContent=c.error; return; }
+    if(r.cafe==='si' && !r.cafehora){ $('err').textContent='Indica la hora del último café.'; return; }
+    if(r.pastilla==='si' && !r.pastillatxt.trim()){ $('err').textContent='Indica qué pastilla tomaste (nombre, dosis y hora).'; return; }
+    if(r.antes!=='si') r.antesmin='';
+    if(r.cafe!=='si') r.cafehora='';
+    if(r.pastilla!=='si') r.pastillatxt='';
+    if(!editando && noches[r.fecha] && !confirm('Ya hay un registro para esa noche. ¿Reemplazarlo?')) return;
+    if(editando && editando!==r.fecha){
+      if(noches[r.fecha] && !confirm('Ya hay un registro para la nueva fecha. ¿Reemplazarlo?')) return;
+      borrar(editando);
+    }
+    r.guardado=new Date().toISOString();
+    persistir(r);
+    toast(editando?'Noche actualizada':'Noche guardada');
+    nuevo(); render();
+  });
+  $('limpiar').addEventListener('click', nuevo);
+
+  // ================= resumen =================
+  const cuenta = (lista,f) => lista.filter(f).length+' de '+lista.length;
+  function bloqueResumen(titulo, lista){
+    if(!lista.length) return '';
+    const cs=lista.map(calcular).filter(c=>!c.error);
+    if(!cs.length) return '';
+    const sum=f=>cs.reduce((a,c)=>a+f(c),0);
+    const efC=sum(c=>c.tts)/sum(c=>c.tec), efI=sum(c=>c.tts)/sum(c=>c.ventana);
+    const qs=lista.map(r=>r.calidad).filter(v=>v!=null), q=qs.length? qs.reduce((a,b)=>a+b,0)/qs.length : null;
+    const nds=lista.filter(r=>r.ndesp!=='').map(r=>num(r.ndesp)), nd=nds.length? nds.reduce((a,b)=>a+b,0)/nds.length : null;
+    return `<h2>${titulo}</h2>
+      <div class="big"><strong>${pct(efC)}</strong><span>eficiencia sobre tiempo en cama</span></div>
+      <div class="bar" aria-hidden="true"><i style="width:${Math.min(100,efC*100)}%"></i></div>
+      <p class="small">Sobre intento de dormir: <b>${pct(efI)}</b>. La línea dorada marca 85%.</p>
+      <div class="preview">
+        <div class="kpi"><span>Dormido prom.</span><strong>${hm(sum(c=>c.tts)/cs.length)}</strong></div>
+        <div class="kpi"><span>En cama prom.</span><strong>${hm(sum(c=>c.tec)/cs.length)}</strong></div>
+        <div class="kpi"><span>Latencia prom.</span><strong>${Math.round(sum(c=>c.lat)/cs.length)} min</strong></div>
+        <div class="kpi"><span>Despierto noche</span><strong>${Math.round(sum(c=>c.waso)/cs.length)} min</strong></div>
+        <div class="kpi"><span>Antes de intentar</span><strong>${Math.round(sum(c=>c.preCama)/cs.length)} min</strong></div>
+        <div class="kpi"><span>Despertares prom.</span><strong>${nd==null?'–':dec1(nd)}</strong></div>
+        <div class="kpi"><span>Calidad prom.</span><strong>${q==null?'–':dec1(q)}</strong></div>
+        <div class="kpi"><span>Despertó antes</span><strong>${cuenta(lista,r=>r.antes==='si')}</strong></div>
+        <div class="kpi"><span>Con pastilla</span><strong>${cuenta(lista,r=>r.pastilla==='si')}</strong></div>
+        <div class="kpi"><span>Trasnoche</span><strong>${cuenta(lista,r=>r.trasnoche==='si')}</strong></div>
+        <div class="kpi"><span>Café desde 14 h</span><strong>${cuenta(lista,r=>r.cafe==='si'&&r.cafehora>='14:00')}</strong></div>
+        <div class="kpi"><span>Con alcohol</span><strong>${cuenta(lista,r=>!!r.alcohol)}</strong></div>
+      </div>
+      <p class="small">${cs.length} noche${cs.length===1?'':'s'} consideradas.</p>`;
+  }
+
+  // ================= gráficos =================
+  function escala(lo,hi,maxT){
+    const span=(hi-lo)||1; const pasos=[1,2,5,10,15,20,30,60,120,240];
+    const p=pasos.find(x=>span/x<=maxT)||Math.ceil(span/maxT);
+    lo=Math.floor(lo/p)*p; hi=Math.ceil(hi/p)*p; if(hi===lo) hi=lo+p;
+    const t=[]; for(let v=lo; v<=hi+1e-9; v+=p) t.push(v); return {lo,hi,t};
+  }
+  function grafico(titulo, xs, x0, x1, series, opt){
+    const W=520,H=200,L=48,R=16,T=14,B=28;
+    const vals=series.flatMap(s=>s.vals).filter(v=>v!=null&&!isNaN(v));
+    if(!vals.length) return '';
+    let mn=Math.min(...vals), mx=Math.max(...vals);
+    if(opt.ref!=null){ mn=Math.min(mn,opt.ref); mx=Math.max(mx,opt.ref); }
+    if(opt.min!=null) mn=opt.min;
+    if(opt.max!=null) mx=opt.max;
+    const e=escala(mn,mx,5), lo=e.lo, hi=e.hi;
+    const sx = x1>x0 ? (W-L-R)/(x1-x0) : 0;
+    const x=d=> x1>x0 ? L+(d-x0)*sx : (L+W-R)/2;
+    const y=v=> T+(H-T-B)*(1-(v-lo)/(hi-lo));
+    let bands='',grid='',avgs='',paths='',dots='';
+    const bw=Math.max(6, x1>x0 ? Math.min(sx*0.8,30) : 16);
+    (opt.marcas||[]).forEach(m=>{ m.on.forEach((v,i)=>{ if(v) bands+=`<rect x="${x(xs[i])-bw/2}" y="${T}" width="${bw}" height="${H-T-B}" style="fill:${m.color}" opacity="${m.op}"/>`; }); });
+    e.t.forEach(v=>{ grid+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${opt.fmt(v)}</text>`; });
+    if(opt.ref!=null) grid+=`<line x1="${L}" x2="${W-R}" y1="${y(opt.ref)}" y2="${y(opt.ref)}" style="stroke:var(--muted)" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+    const span=x1-x0, nl=span===0?1:Math.min(6,span+1);
+    for(let k=0;k<nl;k++){
+      const d = nl===1 ? x0 : x0+Math.round(k*span/(nl-1));
+      const anc = nl===1 ? 'middle' : k===0 ? 'start' : k===nl-1 ? 'end' : 'middle';
+      grid+=`<text x="${x(d)}" y="${H-8}" text-anchor="${anc}">${etq(d)}</text>`;
+    }
+    series.forEach(s=>{
+      let d='', prev=null;
+      s.vals.forEach((v,i)=>{
+        if(v==null||isNaN(v)){ prev=null; return; }
+        const tramo = prev==null || xs[i]-xs[prev]>1;
+        d+=(tramo?'M':'L')+x(xs[i]).toFixed(1)+' '+y(v).toFixed(1); prev=i;
+        dots+=`<circle cx="${x(xs[i])}" cy="${y(v)}" r="3.2" style="fill:${s.color}"/>`;
+      });
+      paths+=`<path d="${d}" fill="none" style="stroke:${s.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      const vv=s.vals.filter(v=>v!=null&&!isNaN(v));
+      s.avg = s.prom!=null ? s.prom : (vv.length ? vv.reduce((a,b)=>a+b,0)/vv.length : null);
+      if(s.avg!=null) avgs+=`<line x1="${L}" x2="${W-R}" y1="${y(s.avg)}" y2="${y(s.avg)}" style="stroke:${s.color}" stroke-dasharray="2 4" stroke-width="1.6" opacity=".9"/>`;
+    });
+    const leg = series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}${s.avg!=null?`: <b>${opt.fmt(s.avg)}</b> prom.`:''}</span>`).join('')
+      + `<span><i class="dot"></i>Promedio del período</span>`
+      + (opt.refLabel?`<span><i class="dash"></i>${opt.refLabel}</span>`:'')
+      + (opt.marcas||[]).filter(m=>m.on.some(Boolean)).map(m=>`<span><i class="band" style="background:${m.color};opacity:${Math.min(1,m.op*2.2)}"></i>${m.name}</span>`).join('');
+    return `<div class="chart"><h3>${titulo}</h3><div class="leg">${leg}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(titulo)}">${bands}${grid}${avgs}${paths}${dots}</svg></div>`;
+  }
+
+  let rangoSel='30';
+  function marcarRango(){ document.querySelectorAll('#rango button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.r===rangoSel))); }
+  function aplicarRango(r){
+    const fs=Object.keys(noches).sort(); if(!fs.length) return;
+    rangoSel=r; const ult=fs[fs.length-1];
+    $('hasta').value=ult;
+    $('desde').value = r==='todo' ? fs[0] : deDia(diaN(ult)-(+r-1));
+    marcarRango();
+  }
+  $('rango').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b){ aplicarRango(b.dataset.r); dibujar(); } });
+  ['desde','hasta'].forEach(id=>$(id).addEventListener('change', ()=>{ rangoSel=''; marcarRango(); dibujar(); }));
+
+  function dibujar(){
+    const todas=Object.values(noches);
+    $('graficos').hidden = !todas.length; if(!todas.length) return;
+    if(rangoSel || !$('desde').value || !$('hasta').value) aplicarRango(rangoSel||'30');
+    let de=$('desde').value, ha=$('hasta').value; if(de>ha){ const t=de; de=ha; ha=t; }
+    const datos=todas.filter(r=>r.fecha>=de && r.fecha<=ha).sort((a,b)=>a.fecha.localeCompare(b.fecha))
+      .map(r=>({r,c:calcular(r)})).filter(o=>!o.c.error);
+    $('rangonota').textContent = datos.length+' noche'+(datos.length===1?'':'s')+' en el rango. Las líneas se cortan cuando falta una noche.';
+    if(!datos.length){ $('charts').innerHTML='<p class="empty">No hay noches registradas en ese rango.</p>'; return; }
+    const xs=datos.map(o=>diaN(o.r.fecha)), x0=diaN(de), x1=diaN(ha);
+    const marcas=[
+      {name:'Noche con pastilla', color:'var(--moon)', op:.22, on:datos.map(o=>o.r.pastilla==='si')},
+      {name:'Trasnoche', color:'var(--warn)', op:.16, on:datos.map(o=>o.r.trasnoche==='si')}
+    ];
+    const sTts=datos.reduce((a,o)=>a+o.c.tts,0), sTec=datos.reduce((a,o)=>a+o.c.tec,0), sVen=datos.reduce((a,o)=>a+o.c.ventana,0);
+    $('charts').innerHTML =
+      grafico('Eficiencia de sueño', xs, x0, x1, [
+        {name:'Sobre tiempo en cama',color:'var(--night)',vals:datos.map(o=>o.c.efCama*100),prom:100*sTts/sTec},
+        {name:'Sobre intento de dormir',color:'var(--moon)',vals:datos.map(o=>o.c.efIntento*100),prom:100*sTts/sVen}],
+        {max:100,ref:85,refLabel:'85%',marcas,fmt:v=>Math.round(v)+'%'})+
+      grafico('Tiempo dormido y tiempo en cama', xs, x0, x1, [
+        {name:'Dormido',color:'var(--night)',vals:datos.map(o=>o.c.tts/60)},
+        {name:'En cama',color:'var(--moon)',vals:datos.map(o=>o.c.tec/60)}],
+        {marcas,fmt:v=>dec1(v)+' h'})+
+      grafico('Latencia, tiempo despierto y despertar anticipado', xs, x0, x1, [
+        {name:'Demoré en dormirme',color:'var(--ok)',vals:datos.map(o=>o.c.lat)},
+        {name:'Despierto en la noche',color:'var(--warn)',vals:datos.map(o=>o.c.waso)},
+        {name:'Desperté antes',color:'var(--night)',vals:datos.map(o=>o.r.antes==='si'?num(o.r.antesmin):0)}],
+        {min:0,marcas,fmt:v=>Math.round(v)+' min'})+
+      grafico('Calidad percibida', xs, x0, x1, [
+        {name:'Calidad (1 a 5)',color:'var(--night)',vals:datos.map(o=>o.r.calidad??null)}],
+        {min:1,max:5,marcas,fmt:v=>dec1(v)});
+  }
+
+  // ================= render =================
+  function render(){
+    const orden=Object.values(noches).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    const ult7=orden.slice(0,7), prev7=orden.slice(7,14);
+    $('resumen').innerHTML = orden.length
+      ? bloqueResumen('Últimas 7 noches', ult7) + (prev7.length? '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">'+bloqueResumen('7 noches anteriores', prev7):'')
+      : '<p class="empty">Aún no hay noches. Registra la primera en la pestaña Registrar.</p>';
+    dibujar();
+    $('lista').innerHTML = orden.length ? orden.map(r=>{
+      const c=calcular(r);
+      const extras=[];
+      if(r.trasnoche==='si') extras.push('trasnoche');
+      if(r.antes==='si') extras.push('despertó antes'+(r.antesmin?' ('+num(r.antesmin)+' min)':''));
+      if(r.cafe==='si') extras.push('café '+(r.cafehora||''));
+      if(r.alcohol) extras.push('alcohol '+r.alcohol);
+      if(r.pastilla==='si') extras.push('pastilla: '+r.pastillatxt);
+      return `<div class="night"><div><div class="d">${fmtFecha(r.fecha)}</div>
+        <div class="m">${c.error?'Datos incompletos':`Dormido ${hm(c.tts)} · cama ${hm(c.tec)} · intento ${pct(c.efIntento)}`}${extras.length?' · '+esc(extras.join(' · ')):''}</div>
+        <div class="acts"><button data-ed="${r.fecha}">Editar</button><button data-del="${r.fecha}">Borrar</button></div></div>
+        <div class="e">${c.error?'–':pct(c.efCama)}</div></div>`;
+    }).join('') : '<p class="empty">Sin registros todavía.</p>';
+    avisoRespaldo();
+  }
+  $('lista').addEventListener('click', e=>{
+    const ed=e.target.dataset.ed, del=e.target.dataset.del;
+    if(ed){ editando=ed; escribir(noches[ed]); $('limpiar').hidden=false; $('guardar').textContent='Guardar cambios'; tab('reg'); preview(); window.scrollTo({top:0}); }
+    if(del && confirm('¿Borrar la noche del '+fmtFecha(del)+'? No se puede deshacer.')){ borrar(del); render(); toast('Noche borrada'); }
+  });
+
+  // ================= Excel (.xlsx) sin librerías =================
+  const COLS=[
+    ['fecha','Fecha','fecha'],['acostar','Me acosté','hora'],['luz','Intenté dormir','hora'],
+    ['lat','Latencia (min)','num'],['ndesp','N° despertares','num'],['waso','Despierto en la noche (min)','num'],
+    ['desp','Último despertar','hora'],['lev','Me levanté','hora'],['antes','Desperté antes','sino'],['antesmin','Cuánto antes (min)','num'],
+    ['calidad','Calidad (1-5)','num'],['siesta','Siesta (min)','num'],['trasnoche','Trasnoche','sino'],
+    ['cafe','Café','sino'],['cafehora','Hora último café','hora'],['alcohol','Alcohol','alcohol'],
+    ['pastilla','Pastilla','sino'],['pastillatxt','Detalle pastilla','txt'],['notas','Notas','txt']
+  ];
+  const CALC=[
+    ['Tiempo en cama (min)',c=>c.tec],['Ventana intento (min)',c=>c.ventana],['Tiempo dormido (min)',c=>c.tts],
+    ['Antes de intentar (min)',c=>c.preCama],['En cama tras despertar (min)',c=>c.postCama],
+    ['Eficiencia s/ cama (%)',c=>Math.round(c.efCama*1000)/10],['Eficiencia s/ intento (%)',c=>Math.round(c.efIntento*1000)/10]
+  ];
+  const ALC={poca:'Poca',media:'Media',alta:'Alta'};
+
+  const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+  function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+  function zip(files){
+    const enc=new TextEncoder(), parts=[], cen=[]; let off=0;
+    for(const f of files){
+      const nb=enc.encode(f.name), d=enc.encode(f.text), crc=crc32(d);
+      const h=new DataView(new ArrayBuffer(30));
+      h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true);
+      h.setUint16(10,0,true); h.setUint16(12,0x21,true); h.setUint32(14,crc,true); h.setUint32(18,d.length,true);
+      h.setUint32(22,d.length,true); h.setUint16(26,nb.length,true); h.setUint16(28,0,true);
+      parts.push(new Uint8Array(h.buffer),nb,d);
+      const c=new DataView(new ArrayBuffer(46));
+      c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true);
+      c.setUint16(10,0,true); c.setUint16(12,0,true); c.setUint16(14,0x21,true); c.setUint32(16,crc,true);
+      c.setUint32(20,d.length,true); c.setUint32(24,d.length,true); c.setUint16(28,nb.length,true);
+      c.setUint32(42,off,true);
+      cen.push(new Uint8Array(c.buffer),nb);
+      off+=30+nb.length+d.length;
+    }
+    const cenLen=cen.reduce((a,b)=>a+b.length,0);
+    const e=new DataView(new ArrayBuffer(22));
+    e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true);
+    e.setUint32(12,cenLen,true); e.setUint32(16,off,true);
+    return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }
+  const xmlEsc = s => String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+  const colLetra = i => { let s=''; i++; while(i){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
+  const colIdx = l => { let n=0; for(const ch of l.toUpperCase()) n=n*26+(ch.charCodeAt(0)-64); return n-1; };
+
+  function crearXlsx(filas){
+    const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+    let sd='';
+    filas.forEach((f,ri)=>{
+      sd+=`<row r="${ri+1}">`;
+      f.forEach((v,ci)=>{
+        if(v===''||v==null) return;
+        const ref=colLetra(ci)+(ri+1), st=ri===0?' s="1"':'';
+        if(typeof v==='number' && isFinite(v)) sd+=`<c r="${ref}"${st}><v>${v}</v></c>`;
+        else sd+=`<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+      });
+      sd+='</row>';
+    });
+    const hoja=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="${NS}"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="${filas[0].length}" width="17" customWidth="1"/></cols><sheetData>${sd}</sheetData></worksheet>`;
+    const R='http://schemas.openxmlformats.org/package/2006/relationships', OD='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+    return zip([
+      {name:'[Content_Types].xml', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+      {name:'_rels/.rels', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${R}"><Relationship Id="rId1" Type="${OD}/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+      {name:'xl/workbook.xml', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="${NS}" xmlns:r="${OD}"><sheets><sheet name="Diario" sheetId="1" r:id="rId1"/></sheets></workbook>`},
+      {name:'xl/_rels/workbook.xml.rels', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${R}"><Relationship Id="rId1" Type="${OD}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${OD}/styles" Target="styles.xml"/></Relationships>`},
+      {name:'xl/styles.xml', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="${NS}"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`},
+      {name:'xl/worksheets/sheet1.xml', text:hoja}
+    ]);
+  }
+
+  async function unzip(buf){
+    const dv=new DataView(buf), u=new Uint8Array(buf); let e=-1;
+    for(let i=u.length-22;i>=Math.max(0,u.length-65558);i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+    if(e<0) throw new Error('No es un archivo Excel (.xlsx)');
+    const n=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true); const out={}; const td=new TextDecoder();
+    for(let k=0;k<n;k++){
+      if(dv.getUint32(p,true)!==0x02014b50) throw new Error('Archivo dañado');
+      const met=dv.getUint16(p+10,true), csz=dv.getUint32(p+20,true), nl=dv.getUint16(p+28,true), xl=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), lo=dv.getUint32(p+42,true);
+      const name=td.decode(u.subarray(p+46,p+46+nl)); p+=46+nl+xl+cl;
+      const lnl=dv.getUint16(lo+26,true), lxl=dv.getUint16(lo+28,true), ini=lo+30+lnl+lxl;
+      out[name]={met,data:u.subarray(ini,ini+csz)};
+    }
+    return out;
+  }
+  async function texto(ent){
+    if(!ent) return null;
+    if(ent.met===0) return new TextDecoder().decode(ent.data);
+    if(ent.met===8){
+      if(typeof DecompressionStream==='undefined') throw new Error('Este navegador es muy antiguo para leer Excel');
+      const s=new Blob([ent.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(s).text();
+    }
+    throw new Error('Formato de compresión no soportado');
+  }
+  async function leerXlsx(buf){
+    const z=await unzip(buf);
+    const P=s=>new DOMParser().parseFromString(s,'application/xml');
+    let hoja='xl/worksheets/sheet1.xml';
+    try{
+      const wb=P(await texto(z['xl/workbook.xml'])); const sh=wb.getElementsByTagName('sheet')[0];
+      const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+      const rels=P(await texto(z['xl/_rels/workbook.xml.rels']));
+      for(const r of rels.getElementsByTagName('Relationship')) if(r.getAttribute('Id')===rid){ let t=r.getAttribute('Target').replace(/^\//,''); hoja=t.startsWith('xl/')?t:'xl/'+t; }
+    }catch(_){}
+    if(!z[hoja]){ const k=Object.keys(z).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort()[0]; if(!k) throw new Error('No encontré una hoja'); hoja=k; }
+    const ss=[]; const sst=await texto(z['xl/sharedStrings.xml']);
+    if(sst){ for(const si of P(sst).getElementsByTagName('si')) ss.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join('')); }
+    const doc=P(await texto(z[hoja])); const filas=[];
+    for(const row of doc.getElementsByTagName('row')){
+      const f=[]; let auto=0;
+      for(const c of row.getElementsByTagName('c')){
+        const ref=c.getAttribute('r'); const ci = ref ? colIdx(ref.replace(/\d+/g,'')) : auto; auto=ci+1;
+        const t=c.getAttribute('t'), v=c.getElementsByTagName('v')[0]; let val='';
+        if(t==='s') val = v ? (ss[+v.textContent]??'') : '';
+        else if(t==='inlineStr') val=[...c.getElementsByTagName('t')].map(x=>x.textContent).join('');
+        else if(t==='str'||t==='e') val = v ? v.textContent : '';
+        else if(t==='b') val = v && v.textContent==='1' ? 'Sí' : 'No';
+        else val = v && v.textContent!=='' ? Number(v.textContent) : '';
+        f[ci]=val;
+      }
+      filas.push(f);
+    }
+    return filas;
+  }
+
+  const norm = s => String(s??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  function aFecha(v){
+    if(typeof v==='number' && v>20000) return deDia(Math.round(v)-25569);
+    const s=String(v??'').trim(); let m;
+    if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1]+'-'+pad(m[2])+'-'+pad(m[3]);
+    if((m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/))) return m[3]+'-'+pad(m[2])+'-'+pad(m[1]);
+    return '';
+  }
+  function aHora(v){
+    if(typeof v==='number'){ const fr=v-Math.floor(v); const m=Math.round(fr*1440)%1440; return pad(Math.floor(m/60))+':'+pad(m%60); }
+    const m=String(v??'').trim().match(/^(\d{1,2})[:.](\d{2})/); return m ? pad(m[1])+':'+m[2] : '';
+  }
+  function aValor(tipo, v){
+    if(tipo==='fecha') return aFecha(v);
+    if(tipo==='hora') return aHora(v);
+    if(tipo==='num'){ if(v===''||v==null) return ''; const n=typeof v==='number'?v:parseFloat(String(v).replace(',','.')); return isNaN(n)?'':String(n); }
+    if(tipo==='sino') return /^s/i.test(norm(v)) ? 'si' : '';
+    if(tipo==='alcohol'){ const n=norm(v); return n.startsWith('poc')||n.startsWith('baj') ? 'poca' : n.startsWith('med') ? 'media' : (n.startsWith('alt')||n.startsWith('muc')) ? 'alta' : ''; }
+    return v==null ? '' : String(v);
+  }
+
+  function descargarExcel(){
+    const orden=Object.values(noches).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    if(!orden.length){ toast('No hay datos para respaldar'); return; }
+    const filas=[[...COLS.map(c=>c[1]), ...CALC.map(c=>c[0])]];
+    orden.forEach(r=>{
+      const c=calcular(r);
+      filas.push([
+        ...COLS.map(([k,,t])=>{
+          const v=r[k];
+          if(t==='num') return (v===''||v==null||isNaN(+v)) ? '' : +v;
+          if(t==='sino') return v==='si' ? 'Sí' : 'No';
+          if(t==='alcohol') return ALC[v] || 'No';
+          return v ?? '';
+        }),
+        ...CALC.map(([,f])=> c.error ? '' : f(c))
+      ]);
+    });
+    const nombre='respaldo-diario-sueno-'+isoLocal(new Date())+'.xlsx';
+    const blob=crearXlsx(filas);
+    const file=new File([blob], nombre, {type:blob.type});
+    const movil = matchMedia('(pointer:coarse)').matches;
+    const marcar = ()=>{ try{ localStorage.setItem(LS_RESP, new Date().toISOString()); }catch(e){} avisoRespaldo(); };
+    if(movil && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:'Respaldo diario de sueño'})
+        .then(()=>{ marcar(); toast('Respaldo compartido'); })
+        .catch(err=>{ if(err && err.name==='AbortError') return; bajar(blob,nombre); marcar(); });
+    } else { bajar(blob,nombre); marcar(); toast('Respaldo descargado'); }
+  }
+  function bajar(blob,nombre){
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },2000);
+  }
+
+  function importarRegistros(lista, origen){
+    const ks=lista.filter(r=>r && r.fecha);
+    if(!ks.length){ toast('No encontré noches válidas en '+origen); return false; }
+    const choca=ks.filter(r=>noches[r.fecha]).length;
+    if(!confirm('Se cargarán '+ks.length+' noches'+(choca?'; '+choca+' reemplazarán registros que ya tienes en el teléfono':'')+'. ¿Continuar?')) return false;
+    ks.forEach(r=>{ noches[r.fecha]=normalizar(r); });
+    guardarLocal(); rangoSel='30'; render(); toast(ks.length+' noches cargadas');
+    return true;
+  }
+  async function procesarExcel(buf){
+      const filas=await leerXlsx(buf);
+      const hi=filas.findIndex(f=>f && f.some(v=>norm(v)==='fecha'));
+      if(hi<0) throw new Error('No encontré la columna "Fecha"');
+      const cab=filas[hi].map(norm);
+      const mapa=COLS.map(([k,h,t])=>({k,t,i:cab.indexOf(norm(h))}));
+      const legado=cab.indexOf('cafealcohol');
+      const lista=filas.slice(hi+1).filter(Boolean).map(f=>{
+        const r={};
+        mapa.forEach(({k,t,i})=>{ r[k] = i>=0 ? aValor(t, f[i]) : ''; });
+        r.calidad = r.calidad==='' ? null : Math.min(5,Math.max(1,Math.round(+r.calidad)));
+        if(legado>=0 && f[legado]) r.cafe = String(f[legado]);
+        return r;
+      });
+      return importarRegistros(lista,'el Excel');
+  }
+  $('xlsxIn').addEventListener('change', async e=>{
+    const file=e.target.files[0]; e.target.value=''; if(!file) return;
+    try{ if(await procesarExcel(await file.arrayBuffer())) cerrarMenu(); }
+    catch(err){ toast('No pude leer el archivo: '+(err.message||'error')); }
+  });
+
+  // Migración desde la versión en Claude (texto JSON copiado)
+  $('migrarBtn').addEventListener('click', ()=>{ $('migrar').hidden=!$('migrar').hidden; if(!$('migrar').hidden) $('migrarTxt').focus(); });
+  $('migrarOk').addEventListener('click', ()=>{
+    let n; try{ const j=JSON.parse($('migrarTxt').value.trim()); n=j.noches||j; }catch(_){ toast('El texto no es un respaldo válido'); return; }
+    if(importarRegistros(Object.values(n||{}),'el texto')){ $('migrarTxt').value=''; $('migrar').hidden=true; cerrarMenu(); }
+  });
+
+  // ================= menú =================
+  function abrirMenu(){ $('drawer').classList.add('open'); $('velo').hidden=false; $('menuBtn').setAttribute('aria-expanded','true'); avisoRespaldo(); }
+  function cerrarMenu(){ $('drawer').classList.remove('open'); $('velo').hidden=true; $('menuBtn').setAttribute('aria-expanded','false'); }
+  $('menuBtn').addEventListener('click', abrirMenu);
+  $('cerrarMenu').addEventListener('click', cerrarMenu);
+  $('velo').addEventListener('click', cerrarMenu);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrarMenu(); });
+  $('xlsxOut').addEventListener('click', descargarExcel);
+
+  function avisoRespaldo(){
+    let ult=null; try{ ult=localStorage.getItem(LS_RESP); }catch(e){}
+    const n=Object.keys(noches).length;
+    const dias = ult ? Math.floor((Date.now()-new Date(ult).getTime())/864e5) : null;
+    $('ultResp').textContent = ult ? 'Último respaldo: '+new Date(ult).toLocaleDateString('es-CL',{day:'numeric',month:'short'})+(dias>0?' (hace '+dias+' día'+(dias===1?'':'s')+')':' (hoy)') : 'Aún no has descargado un respaldo.';
+    const av=$('avisoResp');
+    if(n>=3 && (dias==null || dias>=7)){ av.hidden=false; av.textContent = (dias==null?'Aún no tienes respaldo de tus datos.':'Hace '+dias+' días que no respaldas.')+' Abre el menú ☰ y descarga el Excel.'; }
+    else av.hidden=true;
+  }
+
+  // ================= instalación =================
+  let pedido=null;
+  const instalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  $('instalarTxt').textContent = instalada ? 'App instalada en este teléfono.'
+    : ios ? 'Para instalar en iPhone: abre esta página en Safari, toca Compartir y luego “Agregar a pantalla de inicio”.'
+    : 'Para instalar en Android: menú ⋮ de Chrome → “Instalar app” o “Agregar a la pantalla principal”.';
+  window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); pedido=e; $('instalarBtn').hidden=false; });
+  $('instalarBtn').addEventListener('click', async ()=>{ if(!pedido) return; pedido.prompt(); try{ await pedido.userChoice; }catch(_){} pedido=null; $('instalarBtn').hidden=true; });
+  window.addEventListener('appinstalled', ()=>{ $('instalarTxt').textContent='App instalada en este teléfono.'; $('instalarBtn').hidden=true; });
+
+  // ================= navegación =================
+  function tab(t){ document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.tab===t))); ['reg','res','his'].forEach(s=>$(s).hidden = s!==t); }
+  document.querySelector('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b){ tab(b.dataset.tab); if(b.dataset.tab!=='reg') render(); } });
+
+  function estado(t){ $('estado').textContent=t; }
+  let tt; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2200); }
+
+  // ================= inicio =================
+  cargarLocal();
+  Object.keys(noches).forEach(k=>{ noches[k]=normalizar(noches[k]); });
+  nuevo(); render();
+  try{ localStorage.setItem(LS+'-t','1'); localStorage.removeItem(LS+'-t'); }catch(e){ almacenOk=false; }
+  estado(almacenOk ? 'Datos guardados solo en este teléfono.' : 'Este navegador no permite guardar datos: lo que registres se perderá al cerrar.');
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+  if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
